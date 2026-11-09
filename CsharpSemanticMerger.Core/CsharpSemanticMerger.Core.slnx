@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CsharpSemanticMerger.Core/CsharpSemanticMerger.Core.csproj" />
+  <Project Path="CsharpSemanticMerger.Tests/CsharpSemanticMerger.Tests.csproj" />
+</Solution>
