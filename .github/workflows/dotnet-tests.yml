@@ -20,10 +20,10 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore tests/CsharpSemanticMerger.Core.Tests/CsharpSemanticMerger.Core.Tests.csproj
+        run: dotnet restore CsharpSemanticMerger.Core/CsharpSemanticMerger.Tests/CsharpSemanticMerger.Tests.csproj
 
       - name: Build project
-        run: dotnet build tests/CsharpSemanticMerger.Core.Tests/CsharpSemanticMerger.Core.Tests.csproj --configuration Release --no-restore
+        run: dotnet build CsharpSemanticMerger.Core/CsharpSemanticMerger.Tests/CsharpSemanticMerger.Tests.csproj --configuration Release --no-restore
 
       - name: Run xUnit tests
-        run: dotnet test tests/CsharpSemanticMerger.Core.Tests/CsharpSemanticMerger.Core.Tests.csproj --configuration Release --no-build --verbosity normal
+        run: dotnet test CsharpSemanticMerger.Core/CsharpSemanticMerger.Tests/CsharpSemanticMerger.Tests.csproj --configuration Release --no-build --verbosity normal
