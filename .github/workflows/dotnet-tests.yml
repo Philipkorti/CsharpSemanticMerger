@@ -1,0 +1,29 @@
+name: Run Unit Tests
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  test:
+    name: Build & Test (.NET 10)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore CsharpSemanticMerger.Core/CsharpSemanticMerger.Tests/CsharpSemanticMerger.Tests.csproj
+
+      - name: Build project
+        run: dotnet build CsharpSemanticMerger.Core/CsharpSemanticMerger.Tests/CsharpSemanticMerger.Tests.csproj --configuration Release --no-restore
+
+      - name: Run xUnit tests
+        run: dotnet test CsharpSemanticMerger.Core/CsharpSemanticMerger.Tests/CsharpSemanticMerger.Tests.csproj --configuration Release --no-build --verbosity normal
