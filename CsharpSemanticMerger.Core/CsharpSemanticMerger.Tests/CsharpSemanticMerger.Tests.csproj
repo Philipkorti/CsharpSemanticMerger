@@ -15,4 +15,11 @@
     <PackageReference Include="xunit.v3" Version="4.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="GitParsingTests\" />
+    <Folder Include="MergingTests\" />
+    <Folder Include="TestData\" />
+    <Folder Include="SyntaxAnalysisTests\" />
+  </ItemGroup>
+
 </Project>
