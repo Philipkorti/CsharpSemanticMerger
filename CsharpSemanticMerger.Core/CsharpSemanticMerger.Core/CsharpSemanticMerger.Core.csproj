@@ -6,4 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="GitParsing\" />
+    <Folder Include="Merging\" />
+    <Folder Include="Models\" />
+    <Folder Include="SyntaxAnalysis\" />
+  </ItemGroup>
+
 </Project>
