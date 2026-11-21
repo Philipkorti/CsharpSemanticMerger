@@ -49,7 +49,10 @@ namespace CsharpSemanticMerger.Core.Models
         /// <param name="baseLines">The lines from the base version.</param>
         /// <param name="incomingLabel">The label for the incoming version.</param>
         /// <param name="incomingLines">The lines from the incoming version.</param>
-        public ConflictSegment(string headLabel, IReadOnlyList<string> headLines, string baseLabel, IReadOnlyList<string> baseLines, string incomingLabel, IReadOnlyList<string> incomingLines)
+        /// <param name="startLine">The starting line index of the segment in the original file.</param>
+        /// <param name="endLine">The ending line index of the segment in the original file.</param>
+        public ConflictSegment(string headLabel, IReadOnlyList<string> headLines, string baseLabel, IReadOnlyList<string> baseLines, string incomingLabel, IReadOnlyList<string> incomingLines, int startLine, int endLine)
+            : base(startLine, endLine)
         {
             HeadLabel = headLabel;
             HeadLines = headLines;
