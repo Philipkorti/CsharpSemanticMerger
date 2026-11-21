@@ -18,7 +18,10 @@ namespace CsharpSemanticMerger.Core.Models
         /// Initializes a new instance of the <see cref="UnchangedSegment"/> class.
         /// </summary>
         /// <param name="lines">The collection of unchanged lines within this segment.</param>
-        public UnchangedSegment(IReadOnlyList<string> lines)
+        /// <param name="startLine">The starting line index of the segment in the original file.</param>
+        /// <param name="endLine">The ending line index of the segment in the original file.</param>
+        public UnchangedSegment(IReadOnlyList<string> lines, int startLine, int endLine)
+            : base(startLine, endLine)
         {
             Lines = lines;
         }

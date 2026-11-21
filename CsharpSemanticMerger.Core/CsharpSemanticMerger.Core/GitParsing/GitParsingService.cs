@@ -22,7 +22,12 @@ namespace CsharpSemanticMerger.Core.GitParsing
         {
             var fileSegments = new List<FileSegment>();
             var currentUnchangedLines = new List<string>();
-           
+
+            // Track 0-based physical line indices in the raw conflicted file
+            int currentLineIndex = 0;
+            int unchangedStartLine = 0;
+            bool hasUnchangedStartLine = false;
+
             // Use a StringReader for line-by-line, memory-efficient reading (supports both CRLF and LF)
             using (var reader = new StringReader(fileContent))
             {
@@ -38,11 +43,13 @@ namespace CsharpSemanticMerger.Core.GitParsing
                         // If we have collected normal, unchanged code up to this point, save it as a segment
                         if (currentUnchangedLines.Count > 0)
                         {
-                            fileSegments.Add(new UnchangedSegment(currentUnchangedLines));
+                            fileSegments.Add(new UnchangedSegment(currentUnchangedLines, unchangedStartLine, currentLineIndex - 1));
                             currentUnchangedLines.Clear();
+                            hasUnchangedStartLine = false;
                         }
 
                         // Extract metadata (branch/commit label) of the head marker
+                        int conflictStartLine = currentLineIndex;
                         string headLabel = ConflictMarkers.ExtractLabel(lineSpan);
                         var headLines = new List<string>();
                         var baseLines = new List<string>();
@@ -53,6 +60,9 @@ namespace CsharpSemanticMerger.Core.GitParsing
                         bool separatorFound = false;
                         bool endFound = false;
 
+                        // Advance past the '<<<<<<<' marker line
+                        currentLineIndex++;
+
                         // Step 1: Read head lines (until either diff3 base '|||||||' or separator '=======' is reached)
                         while ((lineStr = reader.ReadLine()) != null)
                         {
@@ -62,11 +72,13 @@ namespace CsharpSemanticMerger.Core.GitParsing
                             {
                                 hasBase = true;
                                 baseLabel = ConflictMarkers.ExtractLabel(currentSpan);
+                                currentLineIndex++;
                                 break;
                             }
                             else if(ConflictMarkers.IsMarker(currentSpan, ConflictMarkers.Separator))
                             {
                                 separatorFound = true;
+                                currentLineIndex++;
                                 break;
                             }
                             else if (ConflictMarkers.IsMarker(currentSpan, ConflictMarkers.IncomingEnd))
@@ -76,6 +88,7 @@ namespace CsharpSemanticMerger.Core.GitParsing
                             else
                             {
                                 headLines.Add(lineStr);
+                                currentLineIndex++;
                             }
                         }
 
@@ -88,6 +101,7 @@ namespace CsharpSemanticMerger.Core.GitParsing
                                 if (ConflictMarkers.IsMarker(currentSpan, ConflictMarkers.Separator))
                                 {
                                     separatorFound = true;
+                                    currentLineIndex++;
                                     break;
                                 }
                                 else if (ConflictMarkers.IsMarker(currentSpan, ConflictMarkers.HeadStart) || ConflictMarkers.IsMarker(currentSpan, ConflictMarkers.IncomingEnd))
@@ -97,6 +111,7 @@ namespace CsharpSemanticMerger.Core.GitParsing
                                 else
                                 {
                                     baseLines.Add(lineStr);
+                                    currentLineIndex++;
                                 }
                             }
                         }
@@ -117,8 +132,12 @@ namespace CsharpSemanticMerger.Core.GitParsing
                                 string incomingLabel = ConflictMarkers.ExtractLabel(currentSpan);
                                 endFound = true;
 
+                                // The conflict block ends on the '>>>>>>>' marker line
+                                int conflictEndLine = currentLineIndex;
+                                currentLineIndex++;
+
                                 // Add the complete conflict segment block to the list
-                                fileSegments.Add(new ConflictSegment(headLabel, headLines, baseLabel, baseLines, incomingLabel, incomingLines));
+                                fileSegments.Add(new ConflictSegment(headLabel, headLines, baseLabel, baseLines, incomingLabel, incomingLines, conflictStartLine, conflictEndLine));
                                 break;
                             }
                             else if(ConflictMarkers.IsMarker(currentSpan, ConflictMarkers.HeadStart) || ConflictMarkers.IsMarker(currentSpan, ConflictMarkers.Separator))
@@ -128,6 +147,7 @@ namespace CsharpSemanticMerger.Core.GitParsing
                             else
                             {
                                 incomingLines.Add(lineStr);
+                                currentLineIndex++;
                             }
                         }
                         // Validation: Check if the block was properly closed
@@ -138,8 +158,15 @@ namespace CsharpSemanticMerger.Core.GitParsing
                     }
                     else
                     {
+                        // Record the first line index of the current unchanged block
+                        if (!hasUnchangedStartLine)
+                        {
+                            unchangedStartLine = currentLineIndex;
+                            hasUnchangedStartLine = true;
+                        }
                         // Line does not belong to a conflict -> buffer as unchanged code
                         currentUnchangedLines.Add(lineStr);
+                        currentLineIndex++;
                     }
                 }
             }
@@ -147,7 +174,7 @@ namespace CsharpSemanticMerger.Core.GitParsing
             // Add any remaining unchanged text at the end of the file as the final segment
             if (currentUnchangedLines.Count > 0)
             {
-                fileSegments.Add(new UnchangedSegment(currentUnchangedLines));
+                fileSegments.Add(new UnchangedSegment(currentUnchangedLines, unchangedStartLine, currentLineIndex - 1));
             }
 
             return fileSegments;
