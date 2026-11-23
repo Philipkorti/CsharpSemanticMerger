@@ -16,10 +16,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="GitParsingTests\" />
-    <Folder Include="MergingTests\" />
     <Folder Include="TestData\" />
     <Folder Include="SyntaxAnalysisTests\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CsharpSemanticMerger.Core\CsharpSemanticMerger.Core.csproj" />
   </ItemGroup>
 
 </Project>
